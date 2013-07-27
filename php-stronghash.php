@@ -17,9 +17,10 @@
   When rounds are used other than the default, they are stored in the key [rounds].
 
   If you wish to verify a hash, calling:
-    hasher(COMPARISON_DATA,STORED_SALT,STORED_ALGORITHM)
-  will output an identical output to the first time.
-  If the function is unable to use the same algorithm, it will return FALSE.
+    verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+  will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
+  If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
+  It is highly recommended to pass in the stored al
 
  */
 
@@ -29,6 +30,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 {
   //hashes with most secure algorithm and returns the hash used
   global $default_rounds;
+  $nonnative=false;
   if(!empty($use)) $userset=true;
   else $userset=false;
   if($salt==null && $forcesalt===true) $salt=genUnique();
@@ -64,16 +66,17 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 	{
 	  if($salt!=null) 
 	    {
-	      if(strpos($use,"crypt")>0) 
+	      if(strpos($use,"crypt")!==false) 
 		{
 		  // strip the "crypt" from the algo name and mark that it's wanted
 		  $use_crypt=true;
 		  $use=str_replace("crypt","",$use);
 		}
-	      if(strpos($use,"pbkdf2")>0) 
+	      if(strpos($use,"pbkdf2")!==false) 
 		{
 		  // strip the "pbkdf2" from the algo name and mark that it's wanted
 		  $use_pbkdf2=true;
+		  if(strpos($use,"-nn")!==false) $nonnative=true;
 		  $use=str_replace("pbkdf2","",$use);
 		}
 	      $cryptgo=false;
@@ -85,7 +88,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 		  $use='blowfish';
 		}
 	      else if($use_crypt) return array(false,"Crypt was required but the requested algorithm $use isn't available");
-	      if(function_exists('hash_pbkdf2') && $use_crypt!==true) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
+	      if(function_exists('hash_pbkdf2') && $use_crypt!==true && !$nonnative) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
 	      else if(function_exists('crypt') && ($use_crypt || !$userset) && $cryptgo)
 		{
 		  $data=urlencode($data);
@@ -132,7 +135,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 		    }
 		} // End using crypt
 	      else if(!function_exists('crypt') && $use_crypt) return false;
-	      else if(!function_exists('hash_pbkdf2') && ($use_pbkdf2 || !$userset)) 
+	      else if((!function_exists('hash_pbkdf2') && ($use_pbkdf2 || !$userset)) || ($use_pbkdf2 && $nonnative)) 
 		{
 		  try
 		    {
