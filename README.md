@@ -2,7 +2,6 @@
 
 Cross-Site Hasher. Will always return most secure hash possible.	
 
-/*************
 
 ## USE:	
 
@@ -15,11 +14,12 @@ Then, simply call
     hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
 
 which returns an array of the form:
-    Array {
-            [hash] => HASH_STRING,
-	    [salt] => USED_SALT,
-	    [algo] => ALGORITHM_USED
-          }
+
+     Array {
+             [hash] => HASH_STRING,
+             [salt] => USED_SALT,
+             [algo] => ALGORITHM_USED
+           }
 
 For convenience, when using crypt() this algorthm strips the data crypt() keeps for itself to make the hash easier to parse. 
 The unadulterated hash is then stored in the key [full_hash].
@@ -27,12 +27,12 @@ When rounds are used other than the default, they are stored in the key [rounds]
 
 If you wish to verify a hash, calling:
 
-  verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+    verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
 
 will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
 If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
 
-************/
+### Other Functions
 
 This package includes a couple of dependency functions. Of primarily
 utility are:
@@ -49,8 +49,10 @@ utility are:
                                                     genUnique().
 
 
+## LGPL License
 
 Velociraptor Systems Software / www.velociraptorsystems.com
+
 Copyright (C) 2013 Philip Kahn
 
 This library is free software; you can redistribute it and/or
