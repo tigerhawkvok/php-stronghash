@@ -20,7 +20,6 @@
     verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
   will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
   If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
-  It is highly recommended to pass in the stored al
 
  */
 
@@ -169,7 +168,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 
 }
 
-function genUnique($len=128)
+function genUnique($len=128,$hash=true;)
 {
   /*
     // Very slow unique string generator. 
@@ -187,9 +186,12 @@ function genUnique($len=128)
   $rurl='http://www.random.org/strings/?num=1&len=20&digits=on&upperalpha=on&loweralpha=on&format=plain&rnd=new';
   $string=@file_get_contents($rurl);
   $seed=$string.$id1.$id2.$id3.$id4;
-  $hash=hash('sha512',$seed);
-  $rethash=substr($hash,0,$len);
-  return $rethash;
+  if($hash)
+    {
+      $hash=hash('sha512',$seed);
+      return substr($hash,0,$len);
+    }
+  else return substr($seed,0,$len);
 }
 
 function createSalt($length=32,$add_entropy=null)
