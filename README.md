@@ -1,25 +1,25 @@
-PHP-STRONGHASH
+## php-stronghash [![Build Status]](https://github.com/tigerhawkvok/php-stronghash)
 
 Cross-Site Hasher. Will always return most secure hash possible.	
 
 /*************
 
-USE:	
+## USE:	
 
 Add the following code to your document before calling the function:
 
-  require_once('PATH/TO/FILE/php-stronghash.php');
+    require_once('PATH/TO/FILE/php-stronghash.php');
 
 Then, simply call 
 
-  hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
+    hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
 
 which returns an array of the form:
-  Array {
-          [hash] => HASH_STRING,
-	  [salt] => USED_SALT,
-	  [algo] => ALGORITHM_USED
-        }
+    Array {
+            [hash] => HASH_STRING,
+	    [salt] => USED_SALT,
+	    [algo] => ALGORITHM_USED
+          }
 
 For convenience, when using crypt() this algorthm strips the data crypt() keeps for itself to make the hash easier to parse. 
 The unadulterated hash is then stored in the key [full_hash].
