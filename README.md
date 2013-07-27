@@ -1,4 +1,4 @@
-## php-stronghash [![Build Status]](https://github.com/tigerhawkvok/php-stronghash)
+## php-stronghash
 
 Cross-Site Hasher. Will always return most secure hash possible.	
 
@@ -37,13 +37,35 @@ If the function is unable to use the same algorithm, it will return FALSE. It is
 This package includes a couple of dependency functions. Of primarily
 utility are:
 
-  genUnique([LENGTH=128, RETURN_BASE_16=TRUE]) : generates a unique string. Length defaults to 128. 
+    genUnique([LENGTH=128, RETURN_BASE_16=TRUE]) : generates a unique string. Length defaults to 128. 
                                                  This uses PHP's rand(), the current URL, computer time, 
                                                  and a true random value from random.org. If the RETURN_BASE_16 
                                                  flag is set, it will return a SHA-512 hash of the seed value. 
                                                  Otherwise, just the unique seed is returned, which may be 
                                                  shorter than the requested length.
 
-  createSalt([LENGTH=32,ADDITIONAL_ENTROPY=NULL]) : Generate a salt of length LENGTH using PHP's rand(), 
+    createSalt([LENGTH=32,ADDITIONAL_ENTROPY=NULL]) : Generate a salt of length LENGTH using PHP's rand(), 
                                                     the current URL, and the computer time. This is faster than
                                                     genUnique().
+
+
+
+Velociraptor Systems Software / www.velociraptorsystems.com
+Copyright (C) 2013 Philip Kahn
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
+
+http://opensource.org/licenses/LGPL-3.0
