@@ -52,9 +52,11 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
   global $default_rounds;
   $rounds= preg_match("/^([0-9]+)$/",$rounds) ? $default_rounds:$rounds;
   $userset = empty($use) ? false: true;
-  $nonnative=false;
-  $use_crypt=false;
-  $use_pbkdf2=false;
+  $cryptgo=false;
+  $use_crypt= strpos($use,"crypt")!==false ? true:false;
+  $use_pbkdf2= strpos($use,"pbkdf2")!==false ? true:false;
+  $simplerounds = strpos($use,"-multi")!==false ? true:false;
+  $nonnative= strpos($use,"-nn")!==false ? true:false;
   if($salt==null && $forcesalt===true) $salt=genUnique();
   if(function_exists('hash'))
     {
@@ -88,28 +90,18 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 	{
 	  if(!empty($salt)) 
 	    {
-	      if(strpos($use,"crypt")!==false) 
-		{
-		  // strip the "crypt" from the algo name and mark that it's wanted
-		  $use_crypt=true;
-		  $use=str_replace("crypt","",$use);
-		}
-	      if(strpos($use,"pbkdf2")!==false) 
-		{
-		  // strip the "pbkdf2" from the algo name and mark that it's wanted
-		  $use_pbkdf2=true;
-		  if(strpos($use,"-nn")!==false) $nonnative=true;
-		  $use=str_replace("pbkdf2","",$use);
-		}
-	      $cryptgo=false;
-	      if(CRYPT_SHA512==1 && $use=='sha512') $cryptgo=true;
-	      else if(CRYPT_SHA256==1 && $use=='sha256') $cryptgo=true;
+	      if($use_crypt) $use=str_replace("crypt","",$use);
+	      if($use_pbkdf2) $use=str_replace("pbkdf2","",$use);
+	      // test crypt() usability
+	      if((CRYPT_SHA512==1 && $use=='sha512') || (CRYPT_SHA256==1 && $use=='sha256')) $cryptgo=true;
 	      else if(CRYPT_BLOWFISH==1) 
 		{
 		  $cryptgo=true;
 		  $use='blowfish';
 		}
 	      else if($use_crypt) return array(false,"Crypt was required but the requested algorithm $use isn't available");
+	      
+	      // run PBKDF2 if present
 	      if(function_exists('hash_pbkdf2') && !$use_crypt && !$nonnative) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
 	      else if(function_exists('crypt') && ($use_crypt || !$userset) && $cryptgo)
 		{
@@ -142,6 +134,8 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 		    } // End crypt cases. Now all sophisticated algorithms supported by the system have been exhausted. Use basic hasher.
 		  else 
 		    {
+		      // if this block was executed at the user request, only crypt() should have run.
+		      if($userset) return array(false,"Unable to use $use in crypt().");
 		      try
 			{
 			  // try non-native implmentation of pbkdf2
@@ -153,7 +147,13 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 			  if(function_exists('hash_hmac') && strpos($use,"hmac")!==false) return array('hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."_hmac");
 			  else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false) return false;
 			}
-		      return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
+		      $string=$salt.$data;
+		      for($i=0;$i<$rounds;$i++)
+			{
+			  // a very very basic multi-round hash
+			  $string=hash($use,sha1($string).$string);
+			}
+		      return array('hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
 		    }
 		} // End using crypt
 	      else if(!function_exists('crypt') && $use_crypt) return false;
@@ -175,13 +175,24 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 		  $hash=pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
 		  return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use,"rounds"=>$rounds);
 		}
-	      if(function_exists('hash_hmac'))
+	      // we've walked through all instances of crypt and pbkdf2 by now
+	      if(function_exists('hash_hmac') && !$simplerounds)
 		{ 
 		  if($userset && strpos($use,"_hmac")!==false) return array('hash'=>hash_hmac(str_replace("hmac","",$use),$salt.$data,$salt),"salt"=>$salt,"algo"=>$use);
 		  if(!$userset) return array('hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."hmac");
 		}
 	      else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false && $userset) return false;
-	      return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
+	      else if($simplerounds) // implies user set
+		{
+		  $string=$salt.$data;
+		  for($i=0;$i<$rounds;$i++)
+		    {
+		      // a very very basic multi-round hash
+		      $string=hash($use,sha1($string).$string);
+		    }
+		  return array('hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
+		}
+	      else return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
 	    } // End salt-requring functions
 	  else return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
 	} // End search for supported hash algos
