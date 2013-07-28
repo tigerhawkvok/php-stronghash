@@ -1,4 +1,4 @@
-## php-stronghash
+# php-stronghash
 
 Hash function designed to securely hash sensitive data, like
 passwords, in the most secure way supported by the server you are using.	
