@@ -4,7 +4,7 @@ Hash function designed to securely hash sensitive data, like
 passwords, in the most secure way supported by the server you are using.	
 
 
-## USE:	
+## Use	
 
 Add the following code to your document before calling the function:
 
@@ -28,9 +28,19 @@ which returns an array of the form:
            }
 ```
 
-For convenience, when using crypt() this algorthm strips the data crypt() keeps for itself to make the hash easier to parse. 
-The unadulterated hash is then stored in the key [full_hash].
-When rounds are used other than the default, they are stored in the key [rounds].
+For convenience, when using `crypt()` this algorthm strips the data
+`crypt()` keeps for itself to make the hash easier to parse.  
+The unadulterated hash is then stored in the key `[full_hash]`.
+When rounds are used other than the default, they are stored in the
+key `[rounds]`. 
+
+The library contains a native implementation of
+[PBKDF2](https://en.wikipedia.org/wiki/Pbkdf2) in case neither
+`crypt()` nor `hash_pbkdf2()` is natively supported by the
+server. Failing that, `hash_hmac` is tried, and if that fails, the
+hardest version of SHA is used.
+
+### Verify a hash
 
 If you wish to verify a hash, calling:
 
