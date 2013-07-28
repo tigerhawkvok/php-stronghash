@@ -1,25 +1,32 @@
 ## php-stronghash
 
-Cross-Site Hasher. Will always return most secure hash possible.	
+Hash function designed to securely hash sensitive data, like
+passwords, in the most secure way supported by the server you are using.	
 
 
 ## USE:	
 
 Add the following code to your document before calling the function:
 
-    require_once('PATH/TO/FILE/php-stronghash.php');
+```php
+require_once('PATH/TO/FILE/php-stronghash.php');
+```
 
 Then, simply call 
 
-    hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
+```php
+hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
+```
 
 which returns an array of the form:
 
+```php
      Array {
              [hash] => HASH_STRING,
              [salt] => USED_SALT,
              [algo] => ALGORITHM_USED
            }
+```
 
 For convenience, when using crypt() this algorthm strips the data crypt() keeps for itself to make the hash easier to parse. 
 The unadulterated hash is then stored in the key [full_hash].
@@ -27,10 +34,17 @@ When rounds are used other than the default, they are stored in the key [rounds]
 
 If you wish to verify a hash, calling:
 
-    verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+```php
+verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+```
 
-will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
-If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
+will return TRUE on a match, and FALSE on a failure. It uses a slow
+match to avoid attacks on speed matching. If the function is unable to use the same algorithm, it will return
+FALSE. It is highly recommended to always specify the algo. If
+COMPARISON_DATA is the original array passed from `hasher()`, the
+correct data is always passed automatically, filling the optional
+values with the appropriate key values. This is the easiest way to
+pass data into `verifyHash()`.
 
 ### Other Functions
 

@@ -20,6 +20,7 @@
     verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
   will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
   If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
+  If COMPARISON_DATA is the original array passed from hasher(), the correct data is always passed automatically.
 
 Velociraptor Systems Software / www.velociraptorsystems.com
 Copyright (C) 2013 Philip Kahn
@@ -45,21 +46,23 @@ http://opensource.org/licenses/LGPL-3.0
 
 $default_rounds=10000;
 
-function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_rounds)
+function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 {
   //hashes with most secure algorithm and returns the hash used
   global $default_rounds;
+  $rounds= preg_match("/^([0-9]+)$/",$rounds) ? $default_rounds:$rounds;
+  $userset = empty($use) ? false: true;
   $nonnative=false;
-  if(!empty($use)) $userset=true;
-  else $userset=false;
+  $use_crypt=false;
+  $use_pbkdf2=false;
   if($salt==null && $forcesalt===true) $salt=genUnique();
-  if(!is_numeric($rounds)) $rounds=$default_rounds;
   if(function_exists('hash'))
     {
       // All more advanced algos also mean that hash() can be used
       $list=hash_algos();
       if(empty($use))
 	{
+	  // manually iterate through common inclusions and prefer in order
 	  foreach($list as $algo)
 	    {
 	      if($algo=='sha512')
@@ -83,7 +86,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 	}
       if(!empty($use))
 	{
-	  if($salt!=null) 
+	  if(!empty($salt)) 
 	    {
 	      if(strpos($use,"crypt")!==false) 
 		{
@@ -107,7 +110,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 		  $use='blowfish';
 		}
 	      else if($use_crypt) return array(false,"Crypt was required but the requested algorithm $use isn't available");
-	      if(function_exists('hash_pbkdf2') && $use_crypt!==true && !$nonnative) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
+	      if(function_exists('hash_pbkdf2') && !$use_crypt && !$nonnative) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
 	      else if(function_exists('crypt') && ($use_crypt || !$userset) && $cryptgo)
 		{
 		  $data=urlencode($data);
@@ -128,7 +131,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=$default_roun
 		      default:
 			$ss=false;
 		    }
-		  if($ss!=false)
+		  if($ss!==false)
 		    {
 		      // do crypt
 		      $result=crypt($data,$ss);
@@ -255,12 +258,21 @@ function curPageURL() {
  return $pageURL;
 }
 
-function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=$default_rounds)
+function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=null)
 {
+  if(is_array($orig_data))
+    {
+      global $default_rounds;
+      $orig_salt=$orig_data['salt'];
+      $orig_algo=$orig_data['algo'];
+      $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? orig_data['rounds']:$default_rounds;
+    }
   $newhash=hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
   if($newhash[0]!==false) return slow_equals($hash,$newhash['hash']);
   else return false;
 }
+
+
 ?>
 <?php
 /*
