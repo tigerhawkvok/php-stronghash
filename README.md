@@ -18,13 +18,15 @@ Then, simply call
 hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
 ```
 
-which returns an array of the form:
+This means that the easiset way to call the function, and get the most
+secure result, is to call `hasher(DATA);`. That's it, nothing else to
+it! The function then returns an array of the form:
 
 ```php
      Array {
-             [hash] => HASH_STRING,
-             [salt] => USED_SALT,
-             [algo] => ALGORITHM_USED
+             [hash] => HASH_STRING, // the actual hash
+             [salt] => USED_SALT, // generated salt, default 32 characters
+             [algo] => ALGORITHM_USED // eg, "pbkdf2crypt" meaning pbkdf2 done with the crypt() function;
            }
 ```
 
