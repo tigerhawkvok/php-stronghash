@@ -51,6 +51,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
   //hashes with most secure algorithm and returns the hash used
   global $default_rounds;
   $rounds= preg_match("/^([0-9]+)$/",$rounds) ? $default_rounds:$rounds;
+  if(!is_numeric($rounds) || $rounds<1000) $rounds=10000;
   $userset = empty($use) ? false: true;
   $cryptgo=false;
   $use_crypt= strpos($use,"crypt")!==false ? true:false;
@@ -202,7 +203,7 @@ function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
 
 }
 
-function genUnique($len=128,$hash=true;)
+function genUnique($len=128,$hash=true)
 {
   /*
     // Very slow unique string generator. 
@@ -276,7 +277,7 @@ function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_round
       global $default_rounds;
       $orig_salt=$orig_data['salt'];
       $orig_algo=$orig_data['algo'];
-      $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? orig_data['rounds']:$default_rounds;
+      $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$default_rounds;
     }
   $newhash=hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
   if($newhash[0]!==false) return slow_equals($hash,$newhash['hash']);
