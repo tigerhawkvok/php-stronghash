@@ -21,7 +21,7 @@
 
   If you wish to verify a hash, calling:
 
-    verifyHash(TEST_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+    verifyHash(TEST_HASH_OR_BASE_DATA,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
 
   will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
   If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
@@ -285,7 +285,9 @@ class Stronghash {
         $orig_salt=$orig_data['salt'];
         $orig_algo=$orig_data['algo'];
         $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$default_rounds;
+        $orig_data=$orig_data['hash'];
       }
+    if(strlen($orig_data)!=strlen($hash)) $hash=hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
     $newhash=hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
     if($newhash[0]!==false) return slow_equals($hash,$newhash['hash']);
     else return false;
