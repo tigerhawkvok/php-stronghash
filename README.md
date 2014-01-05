@@ -65,7 +65,7 @@ pass data into `verifyHash()`.
 
 ### Other Functions
 
-This package includes a couple of dependency functions. Of primarily
+This package includes a couple of dependency functions. Of primary
 utility are:
 
     genUnique([LENGTH=128, RETURN_BASE_16=TRUE]) : generates a unique string. Length defaults to 128. 

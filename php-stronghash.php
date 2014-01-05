@@ -210,7 +210,7 @@ class Stronghash {
 
   }
 
-  private function genUnique($len=128,$hash=true)
+  public function genUnique($len=128,$hash=true)
   {
     /*
     // Very slow unique string generator. 
@@ -243,7 +243,7 @@ class Stronghash {
     else return substr($seed,0,$len);
   }
 
-  private function createSalt($length=32,$add_entropy=null)
+  public function createSalt($length=32,$add_entropy=null)
   {
     $id1=uniqid(mt_rand(),true);
     $id2=md5(date('dDjlSwzWFmMntLYayABgGhiHsOZ'));
