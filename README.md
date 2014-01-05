@@ -52,7 +52,7 @@ hardest version of SHA is used.
 If you wish to verify a hash, calling:
 
 ```php
-verifyHash(STORED_HASH,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
+verifyHash(BASE_HASH_OR_DATA,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
 ```
 
 will return TRUE on a match, and FALSE on a failure. It uses a slow

@@ -289,14 +289,15 @@ class Stronghash {
     if(is_array($orig_data))
       {
         global $default_rounds;
+        $refhash=$orig_data;
         $orig_salt=$orig_data['salt'];
         $orig_algo=$orig_data['algo'];
-        $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$default_rounds;
-        $orig_data=$orig_data['hash'];
+        $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$default_rounds; // natural number
       }
+    else $refhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
     if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
-    $newhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
-    if($newhash[0]!==false) return $this->slow_equals($hash,$newhash['hash']);
+    
+    if($newhash[0]!==false) return $this->slow_equals($hash,$refhash['hash']);
     else return false;
   }
 
