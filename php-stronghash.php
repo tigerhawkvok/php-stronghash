@@ -65,7 +65,7 @@ class Stronghash {
     $use_pbkdf2= strpos($use,"pbkdf2")!==false ? true:false;
     $simplerounds = strpos($use,"-multi")!==false ? true:false;
     $nonnative= strpos($use,"-nn")!==false ? true:false;
-    if($salt==null && $forcesalt===true) $salt=genUnique();
+    if($salt==null && $forcesalt===true) $salt=$this->genUnique();
     if(function_exists('hash'))
       {
         // All more advanced algos also mean that hash() can be used
@@ -147,7 +147,7 @@ class Stronghash {
                         try
                           {
                             // try non-native implmentation of pbkdf2
-                            $hash=pbkdf2($use,$data,$salt,$rounds,128);
+                            $hash=$this->pbkdf2($use,$data,$salt,$rounds,128);
                             return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                           }
                         catch(Exception $e)
@@ -170,7 +170,7 @@ class Stronghash {
                     try
                       {
                         // try non-native implmentation of pbkdf2
-                        $hash=pbkdf2($use,$data,$salt,$rounds,128);
+                        $hash=$this->pbkdf2($use,$data,$salt,$rounds,128);
                         return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                       }
                     catch(Exception $e)
@@ -180,7 +180,7 @@ class Stronghash {
                   }
                 else if(strpos($use,"pbkdf2-nn")!==false)
                   {
-                    $hash=pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
+                    $hash=$this->pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
                     return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use,"rounds"=>$rounds);
                   }
                 // we've walked through all instances of crypt and pbkdf2 by now
@@ -216,17 +216,24 @@ class Stronghash {
     // Very slow unique string generator. 
     // Uses PHP rand(), computer time, current URL, best sha hash, and a true random value from random.org
     */
-    $id1=createSalt();
-    $id2=microtime_float();
+    $id1=$this->createSalt();
+    $id2=$this->microtime_float();
     $id3=rand(0,10000000000);
-    $id4_1=createSalt(64);
+    $id4_1=$this->createSalt(64);
     $id4_2=$_SERVER['request_uri'];
-    $id4_3=microtime_float();
+    $id4_3=$this->microtime_float();
     $id4_4=$id4_1.$id4_2.$id4;
     $id4=sha1($id4_4.createSalt(128));
     // random.org input
-    $rurl='http://www.random.org/strings/?num=1&len=20&digits=on&upperalpha=on&loweralpha=on&format=plain&rnd=new';
-    $string=@file_get_contents($rurl);
+    try
+      {
+        $rurl='http://www.random.org/strings/?num=1&len=20&digits=on&upperalpha=on&loweralpha=on&format=plain&rnd=new';
+        $string=file_get_contents($rurl);
+      }
+    catch(Exception $e)
+      {
+        $string='';
+      }
     $seed=$string.$id1.$id2.$id3.$id4;
     if($hash)
       {
@@ -287,9 +294,9 @@ class Stronghash {
         $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$default_rounds;
         $orig_data=$orig_data['hash'];
       }
-    if(strlen($orig_data)!=strlen($hash)) $hash=hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
-    $newhash=hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
-    if($newhash[0]!==false) return slow_equals($hash,$newhash['hash']);
+    if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
+    $newhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
+    if($newhash[0]!==false) return $this->slow_equals($hash,$newhash['hash']);
     else return false;
   }
 
