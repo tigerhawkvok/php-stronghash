@@ -301,7 +301,7 @@ class Stronghash {
     return $pageURL;
   }
 
-  public function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=null)
+  public function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=null,$debug=false)
   {
     if(is_array($orig_data))
       {
@@ -313,7 +313,7 @@ class Stronghash {
     else $refhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
     if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
     
-    if($newhash[0]!==false) return $this->slow_equals($hash,$refhash['hash']);
+    if($refhash[0]!==false) return $this->slow_equals($hash,$refhash['hash']);
     else return false;
   }
 
