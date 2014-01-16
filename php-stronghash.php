@@ -53,13 +53,14 @@ class Stronghash {
 
   function __construct()
   {
-    $this->$default_rounds=10000;
+    $this->default_rounds=10000;
   }
 
   private function getDefaultRounds() {
     try
       {
-        return $this->$default_rounds;
+        if(is_numeric($this->default_rounds)) return $this->default_rounds;
+        throw new Exception('Non-numeric rounds');
       }
     catch(Exception $e)
       {
