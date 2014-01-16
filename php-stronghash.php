@@ -57,7 +57,14 @@ class Stronghash {
   }
 
   private function getDefaultRounds() {
-    return $this->$default_rounds;
+    try
+      {
+        return $this->$default_rounds;
+      }
+    catch(Exception $e)
+      {
+        return 10000;
+      }
   }
 
   public function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
