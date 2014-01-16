@@ -312,15 +312,21 @@ class Stronghash {
         $orig_data=$orig_data['hash'];
       }
     else $refhash=array("hash"=>$orig_data,"salt"=>$orig_salt,"algo"=>$orig_algo,"rounds"=>$orig_rounds); //$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
-    if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
+    if(strlen($orig_data)!=strlen($hash) && !is_array($hash))
+      {
+        $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
+        $hash_compare=$hash['hash'];
+      }
+    else if(is_array($hash)) $hash_compare=$hash['hash'];
+    else $hash_compare=$hash;
 
     if($debug===true)
       {
-        $match= $hash==$refhash['hash'] ? true:false;
-        return array("pw_hashed"=>$hash,"data"=>$refhash,"match"=>$match);
+        $match= $hash_compare==$refhash['hash'] ? true:false;
+        return array("pw_hashed"=>$hash,"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>$match);
       }
     
-    if($refhash[0]!==false) return $this->slow_equals($hash,$refhash['hash']);
+    if($refhash[0]!==false) return $this->slow_equals($hash_compare,$refhash['hash']);
     else return false;
   }
 
