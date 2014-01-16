@@ -161,7 +161,8 @@ class Stronghash {
                         try
                           {
                             // try non-native implmentation of pbkdf2
-                            $hash=$this->pbkdf2($use,$data,$salt,$rounds,128);
+                            // echo "Using $use 1";
+                            $hash=$this->pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
                             return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                           }
                         catch(Exception $e)
@@ -184,7 +185,8 @@ class Stronghash {
                     try
                       {
                         // try non-native implmentation of pbkdf2
-                        $hash=$this->pbkdf2($use,$data,$salt,$rounds,128);
+                        // echo "Using $use 2";
+                        $hash=$this->pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
                         return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                       }
                     catch(Exception $e)
@@ -194,6 +196,7 @@ class Stronghash {
                   }
                 else if(strpos($use,"pbkdf2-nn")!==false)
                   {
+                    // echo "Using $use 3 ".str_replace("pbkdf2-nn","",$use);
                     $hash=$this->pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
                     return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use,"rounds"=>$rounds);
                   }
