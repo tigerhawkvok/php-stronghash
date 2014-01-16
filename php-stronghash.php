@@ -226,7 +226,7 @@ class Stronghash {
     $id4_2=$_SERVER['request_uri'];
     $id4_3=$this->microtime_float();
     $id4_4=$id4_1.$id4_2.$id4;
-    $id4=sha1($id4_4.createSalt(128));
+    $id4=sha1($id4_4.$this->createSalt(128));
     // random.org input
     try
       {
@@ -250,7 +250,7 @@ class Stronghash {
   {
     $id1=uniqid(mt_rand(),true);
     $id2=md5(date('dDjlSwzWFmMntLYayABgGhiHsOZ'));
-    $id3=crc32(curPageURL());
+    $id3=crc32($this->curPageURL());
     $charset="!@#~`%^&*()-_+={}|[]:;'<>?,./";
     $repeats=rand(0,64);
     $i=0;
