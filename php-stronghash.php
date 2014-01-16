@@ -51,7 +51,10 @@
 
 class Stronghash {
 
-  private $default_rounds=10000;
+  function __construct()
+  {
+    $this->$default_rounds=10000;
+  }
 
   private function getDefaultRounds() {
     return $this->$default_rounds;
