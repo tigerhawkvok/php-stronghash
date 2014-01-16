@@ -301,6 +301,14 @@ class Stronghash {
     return $pageURL;
   }
 
+  private function strbool($bool)
+  {
+    // returns the string of a boolean as 'true' or 'false'.
+    if(is_string($bool)) $bool=boolstr($bool); // if a string is passed, convert it to a bool
+    if(is_bool($bool)) return $bool ? 'true' : 'false';
+    else return 'non_bool';
+  }
+
   public function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=null,$debug=false)
   {
     if(is_array($orig_data))
@@ -323,7 +331,7 @@ class Stronghash {
     if($debug===true)
       {
         $match= $hash_compare==$refhash['hash'] ? true:false;
-        return array("pw_hashed"=>$hash,"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>$match);
+        return array("pw_hashed"=>$hash,"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>strbool($match));
       }
     
     if($refhash[0]!==false) return $this->slow_equals($hash_compare,$refhash['hash']);
