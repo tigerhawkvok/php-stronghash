@@ -51,7 +51,7 @@
 
 class Stronghash {
 
-  $default_rounds=10000;
+  var $default_rounds=10000;
 
   public function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
   {
