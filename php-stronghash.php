@@ -350,7 +350,7 @@ class Stronghash {
   {
     $algorithm = strtolower($algorithm);
     if(!in_array($algorithm, hash_algos(), true))
-      die('PBKDF2 ERROR: Invalid hash algorithm.');
+      die('PBKDF2 ERROR: Invalid hash algorithm "'.$algorithm.'"');
     if($count <= 0 || $key_length <= 0)
       die('PBKDF2 ERROR: Invalid parameters.');
 
