@@ -309,9 +309,16 @@ class Stronghash {
         $orig_salt=$orig_data['salt'];
         $orig_algo=$orig_data['algo'];
         $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$this->getDefaultRounds(); // natural number
+        $orig_data=$orig_data['hash'];
       }
-    else $refhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
+    else $refhash=array("hash"=>$orig_data,"salt"=>$orig_salt,"algo"=>$orig_algo,"rounds"=>$orig_rounds); //$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
     if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
+
+    if($debug===true)
+      {
+        $match= $hash==$refhash['hash'] ? true:false;
+        return array("pw_hashed"=>$hash,"data"=>$refhash,"match"=>$match);
+      }
     
     if($refhash[0]!==false) return $this->slow_equals($hash,$refhash['hash']);
     else return false;
