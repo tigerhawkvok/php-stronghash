@@ -60,7 +60,7 @@ class Stronghash {
   public function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
   {
     //hashes with most secure algorithm and returns the hash used
-    $rounds= preg_match("/^([0-9]+)$/",$rounds) ? getDefaultRounds():$rounds;
+    $rounds= preg_match("/^([0-9]+)$/",$rounds) ? $this->getDefaultRounds():$rounds;
     if(!is_numeric($rounds) || $rounds<1000) $rounds=10000;
     $userset = empty($use) ? false: true;
     $cryptgo=false;
@@ -294,7 +294,7 @@ class Stronghash {
         $refhash=$orig_data;
         $orig_salt=$orig_data['salt'];
         $orig_algo=$orig_data['algo'];
-        $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:getDefaultRounds(); // natural number
+        $orig_rounds= preg_match("/^([0-9]+)$/",$orig_data['rounds']) ? $orig_data['rounds']:$this->getDefaultRounds(); // natural number
       }
     else $refhash=$this->hasher($orig_data,$orig_salt,$orig_algo,false,$orig_rounds);
     if(strlen($orig_data)!=strlen($hash)) $hash=$this->hasher($hash,$orig_salt,$orig_algo,false,$orig_rounds);
