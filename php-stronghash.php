@@ -1,34 +1,8 @@
 <?php
 /*
   Cross-Site Hasher. Will always return most secure hash possible.
-
-  USE:
-  Simply call 
-
-    hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
-
-  which returns an array of the form:
-
-  Array {
-    [hash] => HASH_STRING,
-    [salt] => USED_SALT,
-    [algo] => ALGORITHM_USED
-  }
-
-  For convenience, when using crypt() this algorthm strips the data crypt() keeps for itself to make the hash easier to parse. 
-  The unadulterated hash is then stored in the key [full_hash].
-  When rounds are used other than the default, they are stored in the key [rounds].
-
-  If you wish to verify a hash, calling:
-
-    verifyHash(TEST_HASH_OR_BASE_DATA,COMPARISON_DATA,[STORED_SALT,STORED_ALGORITHM,OVERRIDE_DEFAULT_ROUNDS_NUMBER])
-
-  will return TRUE on a match, and FALSE on a failure. It uses a slow match to avoid attacks on speed matching.
-  If the function is unable to use the same algorithm, it will return FALSE. It is highly recommended to always specify the algo.
-  If COMPARISON_DATA is the original array passed from hasher(), the correct data is always passed automatically.
-
-  Velociraptor Systems Software / www.velociraptorsystems.com
-  Copyright (C) 2013 Philip Kahn
+  
+  Documentation and use is at https://github.com/tigerhawkvok/php-stronghash
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -230,7 +204,7 @@ class Stronghash {
   public function genUnique($len=128,$hash=true)
   {
     /*
-    // Very slow unique string generator. 
+    // Very slow unique string generator. Pings random.org, so it WILL impact load time.
     // Uses PHP rand(), computer time, current URL, best sha hash, and a true random value from random.org
     */
     $id1=$this->createSalt();
@@ -262,25 +236,36 @@ class Stronghash {
 
   public function createSalt($length=32,$add_entropy=null)
   {
-    $id1=uniqid(mt_rand(),true);
-    $id2=md5(date('dDjlSwzWFmMntLYayABgGhiHsOZ'));
-    $id3=crc32($this->curPageURL());
-    $charset="!@#~`%^&*()-_+={}|[]:;'<>?,./";
-    $repeats=rand(0,64);
-    $i=0;
-    $csl=strlen($charset);
-    while($i<$repeats)
+    if(@include_once("sources/support/random.php") !== false)
       {
-        $pos=rand(0,$csl-1);
-        $id4=substr($charset,$pos,1);
-        $i++;
+        // Do this cryptographically securely
+        $rng = new CSPRNG();
+        $salt = $rng->GenerateString($length);
       }
-    $salt=sha1($id2 . $id1 . $id3 . $id4 . $add_entropy); // add extra entropy if provided.
-    $len=strlen($salt);
-    if($length>$len) $length=$len;
-    $diff=strlen($salt)-$length;
-    $offset=rand(0,$diff);
-    return substr($salt,$offset,$length);
+    else
+      {
+        // Don't give up the ghost, try something that's not quite as good
+        $id1=uniqid(mt_rand(),true);
+        $id2=md5(date('dDjlSwzWFmMntLYayABgGhiHsOZ'));
+        $id3=crc32($this->curPageURL());
+        $charset="!@#~`%^&*()-_+={}|[]:;'<>?,./";
+        $repeats=rand(0,64);
+        $i=0;
+        $csl=strlen($charset);
+        while($i<$repeats)
+          {
+            $pos=rand(0,$csl-1);
+            $id4=substr($charset,$pos,1);
+            $i++;
+          }
+        $salt=sha1($id2 . $id1 . $id3 . $id4 . $add_entropy); // add extra entropy if provided.
+        $len=strlen($salt);
+        if($length>$len) $length=$len;
+        $diff=strlen($salt)-$length;
+        $offset=rand(0,$diff);
+        $salt = substr($salt,$offset,$length);
+      }
+    return $salt;
   }
 
   private function microtime_float()
