@@ -79,9 +79,7 @@ utility are:
 
 ## LGPL License
 
-Velociraptor Systems Software / www.velociraptorsystems.com
-
-Copyright (C) 2013 Philip Kahn
+Copyright (C) 2014 Philip Kahn
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
