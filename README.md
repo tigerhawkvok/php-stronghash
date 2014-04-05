@@ -3,11 +3,7 @@
 Hash function designed to securely hash sensitive data, like
 passwords, in the most secure way supported by the server you are using.	
 
-**Please Note** that this function has some known redundancies and
-inefficiencies still. It's a bit of a patchwork code that I've been
-glomming bits onto for a few years and decided to clean up and
-share. It should work fine, but it's a bit ugly for now. Cleanup will
-be coming!
+Code cleanup is forthcoming!
 
 ## Use	
 
