@@ -340,7 +340,7 @@ class Stronghash {
 
 /*
  * Password hashing with PBKDF2.
- * Author: havoc AT defuse.ca
+ * Original Author: havoc AT defuse.ca
  * www: https://defuse.ca/php-pbkdf2.htm
  */
 

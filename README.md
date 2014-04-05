@@ -20,7 +20,8 @@ require_once('PATH/TO/FILE/php-stronghash.php');
 Then, simply call 
 
 ```php
-hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000])
+h = new Stronghash();
+h.hasher(YOUR_DATA[,SALT=null,ALGORITHM=null,BOOL create_salt_if_not_supplied=true,ROUNDS=100000]);
 ```
 
 This means that the easiset way to call the function, and get the most
