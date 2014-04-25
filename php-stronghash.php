@@ -304,8 +304,10 @@ class Stronghash {
 
   public function verifyHash($hash,$orig_data,$orig_salt=null,$orig_algo=null,$orig_rounds=null,$debug=false)
   {
+    $was_array = false;
     if(is_array($orig_data))
       {
+        $was_array = true;
         $refhash=$orig_data;
         $orig_salt=$orig_data['salt'];
         $orig_algo=$orig_data['algo'];
@@ -323,8 +325,9 @@ class Stronghash {
 
     if($debug===true)
       {
-        $match= $hash_compare==$refhash['hash'] ? true:false;
-        return array("pw_hashed"=>$hash,"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>strbool($match));
+        $match= $hash_compare==$refhash['hash'];
+        $match_slow = $this->slow_equals($hash_compare,$refhash['hash']);
+        return array("pw_hashed"=>$refhash['hash'],"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>$match,"slow_match"=>$match_slow,"basehash"=>$refhash,"was_array"=>$was_array);
       }
     
     if($refhash[0]!==false) return $this->slow_equals($hash_compare,$refhash['hash']);
