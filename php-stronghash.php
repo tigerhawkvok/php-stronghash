@@ -236,15 +236,15 @@ class Stronghash {
 
   public function createSalt($length=32,$add_entropy=null,$do_secure = true)
   {
-    if(@include_once("sources/support/random.php") !== false && $do_secure)
+    if(@include_once("sources/csprng/support/random.php") !== false && $do_secure)
       {
         // Do this cryptographically securely
         try
           {
-            $rng = new CSPRNG();
+            $rng = new CSPRNG;
             $salt = $rng->GenerateString($length);
           }
-        catch($e)
+        catch(Exception $e)
           {
             // run this again, not securely to escape the error
             $this->createSalt($length,$add_entropy,false);
