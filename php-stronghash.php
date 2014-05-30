@@ -53,7 +53,7 @@ class Stronghash {
     $use_pbkdf2= strpos($use,"pbkdf2")!==false ? true:false;
     $simplerounds = strpos($use,"-multi")!==false ? true:false;
     $nonnative= strpos($use,"-nn")!==false ? true:false;
-    if($salt==null && $forcesalt===true) $salt=$this->genUnique();
+    if($salt==null && $forcesalt===true) $salt=self::genUnique();
     if(function_exists('hash'))
       {
         // All more advanced algos also mean that hash() can be used
@@ -136,7 +136,7 @@ class Stronghash {
                           {
                             // try non-native implmentation of pbkdf2
                             // echo "Using $use 1";
-                            $hash=$this->pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
+                            $hash=self::pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
                             return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                           }
                         catch(Exception $e)
@@ -160,7 +160,7 @@ class Stronghash {
                       {
                         // try non-native implmentation of pbkdf2
                         // echo "Using $use 2";
-                        $hash=$this->pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
+                        $hash=self::pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
                         return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                       }
                     catch(Exception $e)
@@ -171,7 +171,7 @@ class Stronghash {
                 else if(strpos($use,"pbkdf2-nn")!==false)
                   {
                     // echo "Using $use 3 ".str_replace("pbkdf2-nn","",$use);
-                    $hash=$this->pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
+                    $hash=self::pbkdf2(str_replace("pbkdf2-nn","",$use),$data,$salt,$rounds,128);
                     return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use,"rounds"=>$rounds);
                   }
                 // we've walked through all instances of crypt and pbkdf2 by now
@@ -201,20 +201,20 @@ class Stronghash {
 
   }
 
-  public function genUnique($len=128,$hash=true)
+  public static function genUnique($len=128,$hash=true)
   {
     /*
     // Very slow unique string generator. Pings random.org, so it WILL impact load time.
     // Uses PHP rand(), computer time, current URL, best sha hash, and a true random value from random.org
     */
-    $id1=$this->createSalt();
-    $id2=$this->microtime_float();
+    $id1=self::createSalt();
+    $id2=self::microtime_float();
     $id3=rand(0,10000000000);
-    $id4_1=$this->createSalt(64);
+    $id4_1=self::createSalt(64);
     $id4_2=$_SERVER['request_uri'];
-    $id4_3=$this->microtime_float();
+    $id4_3=self::microtime_float();
     $id4_4=$id4_1.$id4_2.$id4;
-    $id4=sha1($id4_4.$this->createSalt(128));
+    $id4=sha1($id4_4.self::createSalt(128));
     // random.org input
     try
       {
@@ -234,7 +234,7 @@ class Stronghash {
     else return substr($seed,0,$len);
   }
 
-  public function createSalt($length=32,$add_entropy=null,$do_secure = true)
+  public static function createSalt($length=32,$add_entropy=null,$do_secure = true)
   {
     if(@include_once("sources/csprng/support/random.php") !== false && $do_secure)
       {
@@ -247,7 +247,7 @@ class Stronghash {
         catch(Exception $e)
           {
             // run this again, not securely to escape the error
-            $this->createSalt($length,$add_entropy,false);
+            self::createSalt($length,$add_entropy,false);
           }
       }
     else
@@ -255,7 +255,7 @@ class Stronghash {
         // Don't give up the ghost, try something that's not quite as good
         $id1=uniqid(mt_rand(),true);
         $id2=md5(date('dDjlSwzWFmMntLYayABgGhiHsOZ'));
-        $id3=crc32($this->curPageURL());
+        $id3=crc32(self::curPageURL());
         $charset="!@#~`%^&*()-_+={}|[]:;'<>?,./";
         $repeats=rand(0,64);
         $i=0;
@@ -276,13 +276,13 @@ class Stronghash {
     return $salt;
   }
 
-  private function microtime_float()
+  private static function microtime_float()
   {
     list($usec, $sec) = explode(" ", microtime());
     return ((float)$usec + (float)$sec);
   }
 
-  private function curPageURL() {
+  private static function curPageURL() {
     $pageURL = 'http';
     if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
     $pageURL .= "://";
@@ -294,7 +294,7 @@ class Stronghash {
     return $pageURL;
   }
 
-  private function strbool($bool)
+  private static function strbool($bool)
   {
     // returns the string of a boolean as 'true' or 'false'.
     if(is_string($bool)) $bool=boolstr($bool); // if a string is passed, convert it to a bool
@@ -326,11 +326,11 @@ class Stronghash {
     if($debug===true)
       {
         $match= $hash_compare==$refhash['hash'];
-        $match_slow = $this->slow_equals($hash_compare,$refhash['hash']);
+        $match_slow = self::slow_equals($hash_compare,$refhash['hash']);
         return array("pw_hashed"=>$refhash['hash'],"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>$match,"slow_match"=>$match_slow,"basehash"=>$refhash,"was_array"=>$was_array);
       }
     
-    if($refhash[0]!==false) return $this->slow_equals($hash_compare,$refhash['hash']);
+    if($refhash[0]!==false) return self::slow_equals($hash_compare,$refhash['hash']);
     else return false;
   }
 
@@ -341,7 +341,7 @@ class Stronghash {
  */
 
 // Compares two strings $a and $b in length-constant time.
-  private function slow_equals($a, $b)
+  private static function slow_equals($a, $b)
   {
     $diff = strlen($a) ^ strlen($b);
     for($i = 0; $i < strlen($a) && $i < strlen($b); $i++)
@@ -366,7 +366,7 @@ class Stronghash {
  * This implementation of PBKDF2 was originally created by https://defuse.ca
  * With improvements by http://www.variations-of-shadow.com
  */
-  private function pbkdf2($algorithm, $password, $salt, $count, $key_length, $raw_output = false)
+  private static function pbkdf2($algorithm, $password, $salt, $count, $key_length, $raw_output = false)
   {
     $algorithm = strtolower($algorithm);
     if(!in_array($algorithm, hash_algos(), true))
