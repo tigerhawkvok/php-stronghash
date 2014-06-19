@@ -1,27 +1,8 @@
 <?php
-/*
-  Cross-Site Hasher. Will always return most secure hash possible.
-  
-  Documentation and use is at https://github.com/tigerhawkvok/php-stronghash
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 3 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-  02110-1301  USA
-
-  http://opensource.org/licenses/LGPL-3.0
-
-*/
+/***
+ * Cross-Site Hasher. Will always return most secure hash possible.
+ *Documentation and use is at https://github.com/tigerhawkvok/php-stronghash
+ ***/
 
 class Stronghash {
 
@@ -44,7 +25,10 @@ class Stronghash {
 
   public function hasher($data,$salt=null,$use=null,$forcesalt=true,$rounds=null)
   {
-    //hashes with most secure algorithm and returns the hash used
+    /***
+     * Creates a hash with the most secure algo on the server, and
+     * returns the result with the parameters to verify included
+     ***/
     $rounds= preg_match("/^([0-9]+)$/",$rounds) ? $this->getDefaultRounds():$rounds;
     if(!is_numeric($rounds) || $rounds<1000) $rounds=10000;
     $userset = empty($use) ? false: true;
@@ -60,7 +44,10 @@ class Stronghash {
         $list=hash_algos();
         if(empty($use))
           {
-            // manually iterate through common inclusions and prefer in order
+            # manually iterate through common inclusions and prefer
+            # in order
+            # We can't just break every time, in case the list is not
+            # in order.
             foreach($list as $algo)
               {
                 if($algo=='sha512')
@@ -95,10 +82,10 @@ class Stronghash {
                     $cryptgo=true;
                     $use='blowfish';
                   }
-                else if($use_crypt) return array(false,"Crypt was required but the requested algorithm $use isn't available");
+                else if($use_crypt) return array("status"=>false,"error"=>"Crypt was required but the requested algorithm $use isn't available");
 	      
                 // run PBKDF2 if present
-                if(function_exists('hash_pbkdf2') && !$use_crypt && !$nonnative) return array("hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
+                if(function_exists('hash_pbkdf2') && !$use_crypt && !$nonnative) return array("status"=>true,"hash"=>hash_pbkdf2($use,$data,$salt,$rounds),"salt"=>$salt,"algo"=>$use."pbkdf2","rounds"=>$rounds);
                 else if(function_exists('crypt') && ($use_crypt || !$userset) && $cryptgo)
                   {
                     $data=urlencode($data);
@@ -131,18 +118,24 @@ class Stronghash {
                     else 
                       {
                         // if this block was executed at the user request, only crypt() should have run.
-                        if($userset) return array(false,"Unable to use $use in crypt().");
+                        if($userset) return array("status"=>false,"error"=>"Unable to use $use in crypt().","algo"=>$use);
                         try
                           {
-                            // try non-native implmentation of pbkdf2
-                            // echo "Using $use 1";
-                            $hash=self::pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
-                            return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
+                            # try non-native implmentation of pbkdf2
+                            try
+                              {
+                                $hash=self::pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
+                              }
+                            catch (Exception $e)
+                              {
+                                return array("status"=>false,"error"=>$->getMessage());
+                              }
+                            return array("status"=>true,'hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                           }
                         catch(Exception $e)
                           {
-                            if(function_exists('hash_hmac') && strpos($use,"hmac")!==false) return array('hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."_hmac");
-                            else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false) return false;
+                            if(function_exists('hash_hmac') && strpos($use,"hmac")!==false) return array("status"=>true,'hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."_hmac");
+                            else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false) return array("status"=>false,"error"=>"hmac was required, but no such function exists.","algo"=>$use);
                           }
                         $string=$salt.$data;
                         for($i=0;$i<$rounds;$i++)
@@ -150,10 +143,10 @@ class Stronghash {
                             // a very very basic multi-round hash
                             $string=hash($use,sha1($string).$string);
                           }
-                        return array('hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
+                        return array("status"=>true,'hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
                       }
                   } // End using crypt
-                else if(!function_exists('crypt') && $use_crypt) return false;
+                else if(!function_exists('crypt') && $use_crypt) return array("status"=>false,"error"=>"Crypt was required, but no such function exists.","algo"=>$use);
                 else if((!function_exists('hash_pbkdf2') && ($use_pbkdf2 || !$userset)) || ($use_pbkdf2 && $nonnative)) 
                   {
                     try
@@ -161,11 +154,11 @@ class Stronghash {
                         // try non-native implmentation of pbkdf2
                         // echo "Using $use 2";
                         $hash=self::pbkdf2(str_replace("-nn","",$use),$data,$salt,$rounds,128);
-                        return array('hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
+                        return array("status"=>true,'hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                       }
                     catch(Exception $e)
                       {
-                        if($use_pbkdf2) return false; 
+                        if($use_pbkdf2) return array("status"=>false,"error"=>$e->getMessage(),"algo"=>$use);
                       }
                   }
                 else if(strpos($use,"pbkdf2-nn")!==false)
@@ -177,36 +170,43 @@ class Stronghash {
                 // we've walked through all instances of crypt and pbkdf2 by now
                 if(function_exists('hash_hmac') && !$simplerounds)
                   { 
-                    if($userset && strpos($use,"_hmac")!==false) return array('hash'=>hash_hmac(str_replace("hmac","",$use),$salt.$data,$salt),"salt"=>$salt,"algo"=>$use);
-                    if(!$userset) return array('hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."hmac");
+                    if($userset && strpos($use,"_hmac")!==false) return array("status"=>true,'hash'=>hash_hmac(str_replace("hmac","",$use),$salt.$data,$salt),"salt"=>$salt,"algo"=>$use);
+                    if(!$userset) return array("status"=>true,'hash'=>hash_hmac($use,$salt.$data,$salt),"salt"=>$salt,"algo"=>$use."hmac");
                   }
-                else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false && $userset) return false;
+                else if(!function_exists('hash_hmac') && strpos($use,"hmac")!==false && $userset) return array("status"=>false,"error"=>"hmac was required, but the function does not exist","algo"=>$use);
                 else if($simplerounds) // implies user set
                   {
                     $string=$salt.$data;
                     for($i=0;$i<$rounds;$i++)
                       {
-                        // a very very basic multi-round hash
-                        $string=hash($use,sha1($string).$string);
+                        try
+                          {
+                            // a very very basic multi-round hash
+                            $string=hash($use,sha1($string).$string);
+                          }
+                        catch (Exception $e)
+                          {
+                            return array("status"=>false,"error"=>"All available hashing methods have been exhausted, and none are compatible with your system.");
+                          }
                       }
-                    return array('hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
+                    return array("status"=>true,'hash'=>$string,"salt"=>$salt,"algo"=>$use."-multi","rounds"=>$rounds);
                   }
-                else return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
+                else return array("status"=>true,'hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
               } // End salt-requring functions
-            else return array('hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
+            else return array("status"=>true,'hash'=>hash($use,$salt.$data),"salt"=>$salt,"algo"=>$use);
           } // End search for supported hash algos
-        else return array('hash'=>sha1($salt.$data),"salt"=>$salt,"algo"=>'sha1');
+        else return array("status"=>true,'hash'=>sha1($salt.$data),"salt"=>$salt,"algo"=>'sha1');
       } // End hash() supported
-    return array('hash'=>sha1($salt.$data),"salt"=>$salt,"algo"=>'sha1');
+    return array("status"=>true,'hash'=>sha1($salt.$data),"salt"=>$salt,"algo"=>'sha1');
 
   }
 
   public static function genUnique($len=128,$hash=true)
   {
-    /*
-    // Very slow unique string generator. Pings random.org, so it WILL impact load time.
-    // Uses PHP rand(), computer time, current URL, best sha hash, and a true random value from random.org
-    */
+    /***
+     * Very slow unique string generator. Pings random.org, so it WILL impact load time.
+     * Uses PHP rand(), computer time, current URL, best sha hash, and a true random value from random.org
+     ***/
     $id1=self::createSalt();
     $id2=self::microtime_float();
     $id3=rand(0,10000000000);
@@ -370,9 +370,9 @@ class Stronghash {
   {
     $algorithm = strtolower($algorithm);
     if(!in_array($algorithm, hash_algos(), true))
-      die('PBKDF2 ERROR: Invalid hash algorithm "'.$algorithm.'"');
+      throw(new Exception('PBKDF2 ERROR: Invalid hash algorithm "'.$algorithm.'"'));
     if($count <= 0 || $key_length <= 0)
-      die('PBKDF2 ERROR: Invalid parameters.');
+      throw(new Exception('PBKDF2 ERROR: Invalid parameters.'));
 
     $hash_length = strlen(hash($algorithm, "", true));
     $block_count = ceil($key_length / $hash_length);
