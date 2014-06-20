@@ -128,7 +128,7 @@ class Stronghash {
                               }
                             catch (Exception $e)
                               {
-                                return array("status"=>false,"error"=>$->getMessage());
+                                return array("status"=>false,"error"=>$e->getMessage());
                               }
                             return array("status"=>true,'hash'=>$hash,"salt"=>$salt,"algo"=>$use."pbkdf2-nn","rounds"=>$rounds);
                           }
@@ -276,7 +276,7 @@ class Stronghash {
     return $salt;
   }
 
-  private static function microtime_float()
+  public static function microtime_float()
   {
     list($usec, $sec) = explode(" ", microtime());
     return ((float)$usec + (float)$sec);
