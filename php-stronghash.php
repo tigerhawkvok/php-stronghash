@@ -330,7 +330,7 @@ class Stronghash {
         return array("pw_hashed"=>$refhash['hash'],"pw_compare"=>$hash_compare,"data"=>$refhash,"match"=>$match,"slow_match"=>$match_slow,"basehash"=>$refhash,"was_array"=>$was_array);
       }
     
-    if($refhash[0]!==false) return self::slow_equals($hash_compare,$refhash['hash']);
+    if(!isset($refhash[0]) || $refhash[0]!==false) return self::slow_equals($hash_compare,$refhash['hash']);
     else return false;
   }
 
